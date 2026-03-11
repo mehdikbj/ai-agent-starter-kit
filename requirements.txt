@@ -12,3 +12,4 @@ pypdf>=4.0.0                          # Reading PDF files for context
 
 # UI & UX (The "Wow" factor)
 rich>=13.0.0                          # For beautiful terminal output and streaming
+streamlit>=1.30.0                     # Web framework for the Chat UI
