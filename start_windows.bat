@@ -3,7 +3,7 @@ title Ollama AI Starter Kit
 cls
 
 echo ==========================================
-echo 🚀 Initializing your Local AI Agent...
+echo 🚀 Initializing Root AI...
 echo ==========================================
 echo.
 

@@ -3,7 +3,7 @@
 # Clear the terminal for a clean UI
 clear
 
-echo "🚀 Initializing your Local AI Agent..."
+echo "🚀 Initializing Root AI..."
 echo "--------------------------------------"
 
 # Navigate to the directory where this script is located

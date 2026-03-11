@@ -5,7 +5,7 @@ import streamlit as st
 from src.agent import agent, DEFAULT_SYSTEM_PROMPT
 
 # --- Streamlit Page Configuration ---
-st.set_page_config(page_title="Local AI Agent", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="Root AI", page_icon="🤖", layout="wide")
 
 # ==========================================
 # 🎛️ SIDEBAR: Settings & Controls
@@ -32,7 +32,7 @@ with st.sidebar:
 # ==========================================
 # 💬 MAIN CHAT INTERFACE
 # ==========================================
-st.title("Ollama AI Starter Kit 🚀")
+st.title("Root AI 🚀")
 st.caption("Running 100% locally on your machine. No data leaves your computer.")
 
 # --- Chat History & AI Memory Initialization ---

@@ -1,6 +1,6 @@
 # 🚀 Ollama AI Starter Kit (Privacy-First)
 
-Welcome to the **Ollama AI Starter Kit**! 
+Welcome to the **Root AI**! 
 This project provides a ready-to-use foundation for building your own local AI assistant. Say goodbye to expensive subscriptions and data privacy concerns: this Starter Kit runs a Large Language Model (LLM) directly on your machine's silicon.
 
 
