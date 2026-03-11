@@ -1,0 +1,14 @@
+# Core AI Framework
+pydantic-ai[openai,anthropic]>=0.0.1  # The modern, typed alternative to LangChain
+logfire                               # Observability for PydanticAI (highly recommended)
+
+# Environment & Async
+python-dotenv>=1.0.0                  # Loading API keys from .env
+httpx>=0.27.0                         # Modern async HTTP client
+
+# Vector Database & RAG
+chromadb>=0.5.0                       # Simple, local vector storage
+pypdf>=4.0.0                          # Reading PDF files for context
+
+# UI & UX (The "Wow" factor)
+rich>=13.0.0                          # For beautiful terminal output and streaming
