@@ -1,5 +1,7 @@
 @echo off
-title Ollama AI Starter Kit
+:: Force l'encodage UTF-8 pour éviter les caractères bizarres
+chcp 65001 >nul
+title Root AI
 cls
 
 echo ==========================================
@@ -7,71 +9,61 @@ echo 🚀 Initializing Root AI...
 echo ==========================================
 echo.
 
-:: 1. NAVIGATE TO SCRIPT FOLDER
-:: This ensures the script runs in the correct directory even if run as admin
 cd /d "%~dp0"
 
-set "OLLAMA_EXE=%LOCALAPPDATA%\Programs\Ollama\ollama.exe"
-
-:: 2. CHECK AND INSTALL OLLAMA
-where "%OLLAMA_EXE%" >nul 2>nul
+:: 1. CHECK AND INSTALL OLLAMA
+where ollama >nul 2>nul
 if %ERRORLEVEL% neq 0 (
-    echo ⚙️ Ollama is not installed. Downloading it for you...
-    echo 📥 Fetching Windows Installer...
-    curl -L https://ollama.com/download/OllamaSetup.exe -o OllamaSetup.exe
+    echo ⚙️ Ollama is not installed.
+    if not exist "OllamaSetup.exe" (
+        echo 📥 Downloading Ollama for Windows...
+        :: Utilisation de PowerShell pour un téléchargement plus robuste
+        powershell -Command "Invoke-WebRequest -Uri 'https://ollama.com/download/OllamaSetup.exe' -OutFile 'OllamaSetup.exe'"
+    )
     
-    echo 📦 Running installer... (Please follow the prompts on your screen)
+    echo 📦 Running installer... 
+    echo ⚠️  IMPORTANT: Please finish the installation window, THEN CLOSE THIS BLACK TERMINAL AND RESTART IT.
     start /wait OllamaSetup.exe
-    
-    echo 🧹 Cleaning up...
     del OllamaSetup.exe
-    
-    echo ⏳ Waiting 5 seconds for Ollama to register...
-    timeout /t 5 /nobreak >nul
+    pause
+    exit
 )
 
-:: 3. ENSURE OLLAMA IS RUNNING
+:: 2. ENSURE OLLAMA IS RUNNING
+echo 🔄 Checking Ollama service...
 curl -s http://localhost:11434/api/tags >nul 2>nul
 if %ERRORLEVEL% neq 0 (
-    echo 🔄 Starting Ollama background service...
-    :: We start the Ollama tray application silently in the background
+    echo 🚀 Starting Ollama background service...
     start "" "%LOCALAPPDATA%\Programs\Ollama\ollama.exe"
-    echo ⏳ Waiting 5 seconds for the engine to warm up...
     timeout /t 5 /nobreak >nul
 )
 
-:: 4. DOWNLOAD THE AI MODEL (THE BRAIN)
-set MODEL_NAME=llama3.1
-echo 🧠 Checking if model '%MODEL_NAME%' is present...
-"%OLLAMA_EXE%" list | findstr /i "%MODEL_NAME%" >nul
+:: 3. DOWNLOAD THE AI MODEL
+set "MODEL_NAME=llama3.1"
+echo 🧠 Checking for model '%MODEL_NAME%'...
+:: On vérifie si le modèle existe sans faire planter le script
+ollama list | findstr /i "%MODEL_NAME%" >nul
 if %ERRORLEVEL% neq 0 (
-    echo 📥 Downloading the AI brain ('%MODEL_NAME%')...
-    echo ⚠️ This is a 4.7GB file. Grab a coffee, this might take a while!
-    "%OLLAMA_EXE%" pull %MODEL_NAME%
+    echo 📥 Downloading the AI brain...
+    ollama pull %MODEL_NAME%
 )
 
-:: 5. PYTHON ENVIRONMENT SETUP
-if not exist venv\Scripts\activate.bat (
-    echo 📦 First run detected. Setting up the Python environment...
+:: 4. PYTHON ENVIRONMENT SETUP
+if not exist venv (
+    echo 📦 Setting up Python environment...
     python -m venv venv
     call venv\Scripts\activate.bat
-    echo ⏳ Installing dependencies (this might take a minute)...
     pip install -q --upgrade pip
     pip install -q -r requirements.txt
-    echo ✅ Setup complete!
 ) else (
-    echo 🔄 Activating virtual environment...
     call venv\Scripts\activate.bat
 )
 
-:: 6. RUN THE WEB APP
+:: 5. RUN THE WEB APP
 echo.
 echo ==========================================
-echo 🌐 Opening the Web Application in your browser...
-echo 💡 Tip: Keep this terminal open while using the app.
+echo 🌐 Opening Root AI in your browser...
 echo ==========================================
 python -m streamlit run main.py
 
-:: Keep terminal open if app crashes
-echo.
 pause
