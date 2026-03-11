@@ -11,8 +11,10 @@ echo.
 :: This ensures the script runs in the correct directory even if run as admin
 cd /d "%~dp0"
 
+set "OLLAMA_EXE=%LOCALAPPDATA%\Programs\Ollama\ollama.exe"
+
 :: 2. CHECK AND INSTALL OLLAMA
-where ollama >nul 2>nul
+where "%OLLAMA_EXE%" >nul 2>nul
 if %ERRORLEVEL% neq 0 (
     echo ⚙️ Ollama is not installed. Downloading it for you...
     echo 📥 Fetching Windows Installer...
@@ -41,11 +43,11 @@ if %ERRORLEVEL% neq 0 (
 :: 4. DOWNLOAD THE AI MODEL (THE BRAIN)
 set MODEL_NAME=llama3.1
 echo 🧠 Checking if model '%MODEL_NAME%' is present...
-ollama list | findstr /i "%MODEL_NAME%" >nul
+"%OLLAMA_EXE%" list | findstr /i "%MODEL_NAME%" >nul
 if %ERRORLEVEL% neq 0 (
     echo 📥 Downloading the AI brain ('%MODEL_NAME%')...
     echo ⚠️ This is a 4.7GB file. Grab a coffee, this might take a while!
-    ollama pull %MODEL_NAME%
+    "%OLLAMA_EXE%" pull %MODEL_NAME%
 )
 
 :: 5. PYTHON ENVIRONMENT SETUP
