@@ -9,7 +9,26 @@ echo "--------------------------------------"
 # Navigate to the directory where this script is located
 cd "$(dirname "$0")"
 
-# --- 1. CHECK AND INSTALL OLLAMA ---
+# --- 1. CHECK AND INSTALL PYTHON ---
+if ! command -v python3 &> /dev/null; then
+    echo "⚙️ Python3 is not installed. Trying to install it..."
+    if command -v brew &> /dev/null; then
+        echo "🍺 Homebrew found. Installing Python3 via brew..."
+        brew update
+        brew install python@3
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "🐧 Linux detected. Installing Python3 via apt-get..."
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-venv python3-pip
+    else
+        echo "❌ Aucune méthode d'installation automatique de Python disponible."
+        echo "Installez Python manuellement : https://www.python.org/downloads/"
+        exit 1
+    fi
+    echo "✅ Python3 installé ou déjà présent."
+fi
+
+# --- 2. CHECK AND INSTALL OLLAMA ---
 if ! command -v ollama &> /dev/null; then
     echo "⚙️ Ollama is not installed. Installing it for you..."
     
@@ -20,7 +39,7 @@ if ! command -v ollama &> /dev/null; then
     sleep 5
 fi
 
-# --- 2. ENSURE OLLAMA IS RUNNING ---
+# --- 3. ENSURE OLLAMA IS RUNNING ---
 if ! curl -s http://localhost:11434/api/tags > /dev/null; then
     echo "🔄 Starting Ollama background service..."
     if [[ "$OSTYPE" == "darwin"* ]]; then
