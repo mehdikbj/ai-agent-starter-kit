@@ -10,7 +10,6 @@ RunContext as first arg, giving access to deps and the model settings).
 
 import os
 from dataclasses import dataclass
-from datetime import datetime
 
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
@@ -65,12 +64,6 @@ def _build_agent(model_id: str) -> Agent:
                 + ctx.deps.rag_context
             )
         return prompt
-
-    # --- Tool: current date/time ---
-    @new_agent.tool_plain
-    def get_current_datetime() -> str:
-        """Returns the current date and time. Call this when the user asks what time or date it is."""
-        return datetime.now().strftime("%A, %B %d, %Y at %H:%M:%S")
 
     return new_agent
 

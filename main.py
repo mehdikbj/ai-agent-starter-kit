@@ -1,13 +1,7 @@
 import asyncio
 
 import httpx
-import nest_asyncio
 import streamlit as st
-
-# Fix asyncio.run() incompatibility in environments that already have a running
-# event loop (certain Streamlit deployment setups, Jupyter-based runners, etc.).
-# Must be applied before any other asyncio usage.
-nest_asyncio.apply()
 
 from src.agent import DEFAULT_SYSTEM_PROMPT, AgentDeps, get_agent
 from src import rag
@@ -170,7 +164,12 @@ if prompt := st.chat_input("Ask me anything..."):
 
             return final_text
 
-        full_response = asyncio.run(fetch_ai_response(prompt))
+        # Create a fresh event loop to avoid conflicts with Streamlit's uvloop.
+        loop = asyncio.new_event_loop()
+        try:
+            full_response = loop.run_until_complete(fetch_ai_response(prompt))
+        finally:
+            loop.close()
 
     # 3. Save the response to the UI history
     if full_response:

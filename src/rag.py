@@ -31,8 +31,6 @@ def _get_collection() -> chromadb.Collection:
     global _client, _collection
     if _collection is None:
         _client = chromadb.PersistentClient(path=_DB_PATH)
-        # DefaultEmbeddingFunction uses a lightweight ONNX MiniLM model (~23 MB,
-        # downloaded once on first use — still 100% local, no API calls).
         _collection = _client.get_or_create_collection(name="documents")
     return _collection
 
