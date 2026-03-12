@@ -1,7 +1,6 @@
 @echo off
-:: Force l'encodage UTF-8 pour éviter les caractères bizarres
 chcp 65001 >nul
-title Root AI
+title Root AI - System Check
 cls
 
 echo ==========================================
@@ -11,58 +10,66 @@ echo.
 
 cd /d "%~dp0"
 
-:: 1. CHECK AND INSTALL OLLAMA
+:: --- 1. CHECK PYTHON ---
+python --version >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo ❌ ERREUR : Python n'est pas détecté sur votre système.
+    echo.
+    echo Pour faire fonctionner Root AI, vous devez installer Python :
+    echo 1. Téléchargez-le ici : https://www.python.org/downloads/
+    echo 2. ⚠️ TRÈS IMPORTANT : Cochez la case "Add Python to PATH" 
+    echo    au début de l'installation.
+    echo.
+    echo Une fois installé, fermez ce terminal et relancez ce script.
+    echo.
+    pause
+    exit
+)
+
+:: --- 2. CHECK OLLAMA ---
 where ollama >nul 2>nul
 if %ERRORLEVEL% neq 0 (
     echo ⚙️ Ollama is not installed.
     if not exist "OllamaSetup.exe" (
         echo 📥 Downloading Ollama for Windows...
-        :: Utilisation de PowerShell pour un téléchargement plus robuste
         powershell -Command "Invoke-WebRequest -Uri 'https://ollama.com/download/OllamaSetup.exe' -OutFile 'OllamaSetup.exe'"
     )
-    
-    echo 📦 Running installer... 
-    echo ⚠️  IMPORTANT: Please finish the installation window, THEN CLOSE THIS BLACK TERMINAL AND RESTART IT.
+    echo 📦 Running installer...
+    echo ✅ Une fois Ollama installé, fermez ce terminal et relancez le script.
     start /wait OllamaSetup.exe
     del OllamaSetup.exe
     pause
     exit
 )
 
-:: 2. ENSURE OLLAMA IS RUNNING
+:: --- 3. SERVICES & VENV ---
 echo 🔄 Checking Ollama service...
 curl -s http://localhost:11434/api/tags >nul 2>nul
 if %ERRORLEVEL% neq 0 (
-    echo 🚀 Starting Ollama background service...
     start "" "%LOCALAPPDATA%\Programs\Ollama\ollama.exe"
     timeout /t 5 /nobreak >nul
 )
 
-:: 3. DOWNLOAD THE AI MODEL
 set "MODEL_NAME=llama3.1"
-echo 🧠 Checking for model '%MODEL_NAME%'...
-:: On vérifie si le modèle existe sans faire planter le script
+echo 🧠 Checking model '%MODEL_NAME%'...
 ollama list | findstr /i "%MODEL_NAME%" >nul
 if %ERRORLEVEL% neq 0 (
-    echo 📥 Downloading the AI brain...
+    echo 📥 Downloading AI brain (4.7GB)...
     ollama pull %MODEL_NAME%
 )
 
-:: 4. PYTHON ENVIRONMENT SETUP
 if not exist venv (
-    echo 📦 Setting up Python environment...
+    echo 📦 Creating Python Virtual Environment...
     python -m venv venv
-    call venv\Scripts\activate.bat
-    pip install -q --upgrade pip
-    pip install -q -r requirements.txt
-) else (
-    call venv\Scripts\activate.bat
 )
 
-:: 5. RUN THE WEB APP
+call venv\Scripts\activate.bat
+echo ⏳ Syncing dependencies (Streamlit, PydanticAI)...
+pip install -q -r requirements.txt
+
 echo.
 echo ==========================================
-echo 🌐 Opening Root AI in your browser...
+echo 🌐 Root AI is ready! Opening your browser...
 echo ==========================================
 python -m streamlit run main.py
 
