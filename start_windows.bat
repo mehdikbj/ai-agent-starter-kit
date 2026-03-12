@@ -76,8 +76,23 @@ exit
 
 :ERR_PYTHON
 echo ❌ ERREUR : Python est absent.
-echo Installez-le : https://www.python.org/downloads/
-echo ⚠️ COCHEZ BIEN "Add Python to PATH".
+where winget >nul 2>nul
+if errorlevel 1 (
+    echo ⚠️ winget n'est pas installé. Installez Python manuellement : https://www.python.org/downloads/
+    echo ⚠️ COCHEZ BIEN "Add Python to PATH".
+    pause
+    exit
+)
+
+echo 🔄 Installation automatique de Python via winget...
+winget install -e --id Python.Python.3 --silent --accept-package-agreements --accept-source-agreements
+if errorlevel 1 (
+    echo ❌ Échec de l'installation automatique de Python. Merci d'installer manuellement : https://www.python.org/downloads/
+    pause
+    exit
+)
+
+echo ✅ Python installé. Relancez le script.
 pause
 exit
 
