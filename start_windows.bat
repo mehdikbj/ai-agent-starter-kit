@@ -12,7 +12,7 @@ cd /d "%~dp0"
 
 :CHECK_PYTHON
 echo [1/5] Checking Python...
-python --version >nul 2>&1
+py --version >nul 2>&1
 if errorlevel 1 goto ERR_PYTHON
 echo ✅ Python found.
 echo.
@@ -84,7 +84,7 @@ exit
 :ERR_OLLAMA
 echo ❌ ERREUR : Ollama n'est pas installe.
 echo Telechargement en cours...
-powershell -Command "Invoke-WebRequest -Uri 'https://ollama.com/download/OllamaSetup.exe' -OutFile 'OllamaSetup.exe'"
+curl.exe -L -o "OllamaSetup.exe" "https://ollama.com/download/OllamaSetup.exe"
 start /wait OllamaSetup.exe
 del OllamaSetup.exe
 echo ✅ Installe fini. FERMEZ CETTE FENETRE et relancez.
