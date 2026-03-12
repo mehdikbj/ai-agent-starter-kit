@@ -42,16 +42,68 @@ fi
 # --- 3. ENSURE OLLAMA IS RUNNING ---
 if ! curl -s http://localhost:11434/api/tags > /dev/null; then
     echo "🔄 Starting Ollama background service..."
+
+    # GPU acceleration — behaviour differs per platform:
+    #   macOS Apple Silicon → Metal is used automatically by Ollama (no config needed)
+    #   macOS Intel         → CPU only (no GPU acceleration available)
+    #   Linux NVIDIA        → CUDA used automatically; OLLAMA_NUM_GPU in .env for fine control
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        open -a Ollama
+        ARCH=$(uname -m)
+        if [[ "$ARCH" == "arm64" ]]; then
+            echo "🍎 Apple Silicon detected — Metal GPU acceleration is ON automatically."
+        else
+            echo "💻 Intel Mac detected — running on CPU (no GPU acceleration available)."
+        fi
+        # Try the desktop .app first; fall back to CLI ollama serve.
+        if open -a Ollama 2>/dev/null; then
+            echo "   ↳ Ollama.app launched."
+        else
+            ollama serve > /dev/null 2>&1 &
+            echo "   ↳ Ollama CLI started in background."
+        fi
     else
-        ollama serve > /dev/null 2>&1 &
+        # Linux: load optional NVIDIA override from .env
+        if [ -f ".env" ]; then
+            export $(grep -E '^OLLAMA_NUM_GPU=' .env | xargs) 2>/dev/null
+        fi
+
+        # The curl|sh installer places a CUDA-enabled binary at /usr/local/bin/ollama.
+        # Homebrew installs a CPU-only build that may appear first in PATH.
+        # Prefer the system binary explicitly when an NVIDIA GPU is present.
+        SYSTEM_OLLAMA="/usr/local/bin/ollama"
+        if command -v nvidia-smi &> /dev/null; then
+            GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1)
+            if [ -n "$GPU_NAME" ]; then
+                echo "🎮 NVIDIA GPU detected: $GPU_NAME"
+                if [ "$OLLAMA_NUM_GPU" = "0" ]; then
+                    echo "   ↳ GPU disabled by OLLAMA_NUM_GPU=0 in .env (CPU only)."
+                    ollama serve > /dev/null 2>&1 &
+                elif [ -x "$SYSTEM_OLLAMA" ]; then
+                    echo "   ↳ Using CUDA-enabled Ollama ($SYSTEM_OLLAMA) — GPU is ON."
+                    [ -n "$OLLAMA_NUM_GPU" ] && echo "   ↳ GPU layers: OLLAMA_NUM_GPU=$OLLAMA_NUM_GPU"
+                    "$SYSTEM_OLLAMA" serve > /dev/null 2>&1 &
+                else
+                    echo "   ↳ GPU acceleration is ON (auto)."
+                    ollama serve > /dev/null 2>&1 &
+                fi
+            else
+                echo "💻 No NVIDIA GPU detected — running on CPU."
+                ollama serve > /dev/null 2>&1 &
+            fi
+        else
+            echo "💻 No NVIDIA GPU detected — running on CPU."
+            ollama serve > /dev/null 2>&1 &
+        fi
     fi
     sleep 5
 fi
 
 # --- 3. DOWNLOAD THE AI MODEL (THE BRAIN) ---
-MODEL_NAME="llama3.1"
+# Read MODEL_ID from .env if set, otherwise default to llama3.1
+if [ -f ".env" ]; then
+    ENV_MODEL=$(grep -E '^MODEL_ID=' .env | cut -d'=' -f2 | tr -d '[:space:]')
+fi
+MODEL_NAME="${ENV_MODEL:-llama3.1}"
 echo "🧠 Checking if model '$MODEL_NAME' is present..."
 if ! ollama list | grep -q "$MODEL_NAME"; then
     echo "📥 Downloading the AI brain ('$MODEL_NAME')..."
